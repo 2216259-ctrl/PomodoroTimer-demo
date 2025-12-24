@@ -72,7 +72,7 @@
                 <span class="material-symbols-outlined">settings</span>
             </button>
 
-            <div class="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full">
+            <div id="focusMode" class="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full">
                 <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide uppercase">Focus
                     Mode</span>
@@ -94,38 +94,41 @@
                     <circle class="text-slate-200 dark:text-[#1a2c30]" cx="50" cy="50" fill="transparent" r="46"
                         stroke="currentColor" stroke-width="4"></circle>
                     <!-- Progress Circle -->
-                    <circle class="text-primary progress-ring__circle drop-shadow-[0_0_10px_rgba(19,200,236,0.5)]"
-                        cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-dasharray="289.026"
-                        stroke-dashoffset="50" stroke-linecap="round" stroke-width="4"></circle>
+                    <circle id="progressCircle"
+                        class="text-primary progress-ring__circle drop-shadow-[0_0_10px_rgba(19,200,236,0.5)]" cx="50"
+                        cy="50" fill="transparent" r="46" stroke="currentColor" stroke-dasharray="289.026"
+                        stroke-dashoffset="0" stroke-linecap="round" stroke-width="4"></circle>
                 </svg>
 
                 <!-- Timer Text Overlay -->
                 <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
-                    <h1
+                    <h1 id="timerDisplay"
                         class="text-7xl sm:text-8xl font-black text-slate-900 dark:text-white tracking-tighter tabular-nums leading-none mb-2">
                         50:00
                     </h1>
-                    <p class="text-slate-400 dark:text-slate-500 font-medium text-lg flex items-center gap-1">
+                    <p id="endTime"
+                        class="text-slate-400 dark:text-slate-500 font-medium text-lg flex items-center gap-1">
                         <span class="material-symbols-outlined text-[18px]">notifications_active</span>
-                        14:50
+                        <span id="endTimeText">--:--</span>
                     </p>
                 </div>
             </div>
 
             <!-- Context Info -->
             <div class="mt-12 text-center space-y-2">
-                <h2 class="text-slate-800 dark:text-white text-xl font-bold">집중 시간</h2>
-                <p class="text-slate-500 dark:text-slate-400 text-sm max-w-[200px] mx-auto leading-relaxed">
+                <h2 id="sessionTitle" class="text-slate-800 dark:text-white text-xl font-bold">집중 시간</h2>
+                <p id="sessionDesc"
+                    class="text-slate-500 dark:text-slate-400 text-sm max-w-[200px] mx-auto leading-relaxed">
                     50분 동안 한 가지 목표에 집중하세요.
                 </p>
             </div>
 
             <!-- Rounds Indicator -->
             <div class="mt-8 flex gap-2" role="status" aria-label="현재 라운드: 1/4">
-                <div class="w-2 h-2 rounded-full bg-primary"></div>
-                <div class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
-                <div class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
-                <div class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                <div id="round1" class="w-2 h-2 rounded-full bg-primary"></div>
+                <div id="round2" class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                <div id="round3" class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                <div id="round4" class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
             </div>
         </main>
 
@@ -133,7 +136,7 @@
         <footer class="p-8 pb-10 w-full">
             <div class="flex items-center justify-center gap-6">
                 <!-- Reset Button -->
-                <button
+                <button id="resetBtn"
                     class="group flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 transition-all text-slate-600 dark:text-white"
                     aria-label="초기화">
                     <span
@@ -141,10 +144,10 @@
                 </button>
 
                 <!-- Play/Pause Button -->
-                <button
+                <button id="playPauseBtn"
                     class="relative group flex items-center justify-center w-24 h-24 rounded-full bg-primary hover:bg-[#11b5d6] transition-all shadow-lg shadow-primary/30 active:scale-95"
                     aria-label="시작">
-                    <span
+                    <span id="playPauseIcon"
                         class="material-symbols-outlined text-black dark:text-[#101f22] text-5xl fill-1 ml-1 group-hover:scale-110 transition-transform">play_arrow</span>
                     <!-- Ripple effect decorative ring -->
                     <span
@@ -152,7 +155,7 @@
                 </button>
 
                 <!-- Skip/Next Button -->
-                <button
+                <button id="skipBtn"
                     class="group flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 transition-all text-slate-600 dark:text-white"
                     aria-label="다음">
                     <span
@@ -178,6 +181,198 @@
             </a>
         </p>
     </div>
+
+    <script>
+        // 타이머 상태
+        let timeLeft = 50 * 60; // 50분 (초 단위)
+        let totalTime = 50 * 60;
+        let isRunning = false;
+        let intervalId = null;
+        let currentRound = 1;
+        let sessionType = 'focus'; // 'focus', 'shortBreak', 'longBreak'
+
+        // DOM 요소
+        const timerDisplay = document.getElementById('timerDisplay');
+        const endTimeText = document.getElementById('endTimeText');
+        const progressCircle = document.getElementById('progressCircle');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const resetBtn = document.getElementById('resetBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const sessionTitle = document.getElementById('sessionTitle');
+        const sessionDesc = document.getElementById('sessionDesc');
+
+        // 시간 포맷팅
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 종료 시간 계산
+        function calculateEndTime() {
+            const now = new Date();
+            const end = new Date(now.getTime() + timeLeft * 1000);
+            return `${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        // 프로그레스 업데이트
+        function updateProgress() {
+            const progress = (timeLeft / totalTime) * 100;
+            const circumference = 289.026;
+            const offset = circumference - (progress / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        // 디스플레이 업데이트
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            if (isRunning) {
+                endTimeText.textContent = calculateEndTime();
+            } else {
+                endTimeText.textContent = '--:--';
+            }
+            updateProgress();
+        }
+
+        // 타이머 틱
+        function tick() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateDisplay();
+            } else {
+                // 타이머 완료
+                complete();
+            }
+        }
+
+        // 시작/일시정지
+        function toggleTimer() {
+            if (isRunning) {
+                // 일시정지
+                pause();
+            } else {
+                // 시작
+                start();
+            }
+        }
+
+        function start() {
+            isRunning = true;
+            playPauseIcon.textContent = 'pause';
+            playPauseIcon.classList.remove('ml-1');
+            intervalId = setInterval(tick, 1000);
+            updateDisplay();
+
+            // 알림 권한 요청
+            if (Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function pause() {
+            isRunning = false;
+            playPauseIcon.textContent = 'play_arrow';
+            playPauseIcon.classList.add('ml-1');
+            clearInterval(intervalId);
+            updateDisplay();
+        }
+
+        function reset() {
+            pause();
+            timeLeft = totalTime;
+            updateDisplay();
+        }
+
+        function complete() {
+            pause();
+
+            // 알림 표시
+            if (Notification.permission === 'granted') {
+                new Notification('뽀모도로 완료! 🍅', {
+                    body: sessionType === 'focus' ? '휴식 시간입니다!' : '다시 집중할 시간입니다!',
+                    icon: 'https://em-content.zobj.net/thumbs/120/apple/354/tomato_1f345.png'
+                });
+            }
+
+            // 다음 세션으로 자동 전환
+            setTimeout(() => {
+                nextSession();
+            }, 1000);
+        }
+
+        function nextSession() {
+            if (sessionType === 'focus') {
+                currentRound++;
+                if (currentRound > 4) {
+                    // 긴 휴식
+                    setSession('longBreak');
+                    currentRound = 1;
+                } else {
+                    // 짧은 휴식
+                    setSession('shortBreak');
+                }
+            } else {
+                // 다시 집중 시간
+                setSession('focus');
+            }
+            updateRounds();
+        }
+
+        function setSession(type) {
+            sessionType = type;
+
+            if (type === 'focus') {
+                totalTime = 50 * 60;
+                sessionTitle.textContent = '집중 시간';
+                sessionDesc.textContent = '50분 동안 한 가지 목표에 집중하세요.';
+            } else if (type === 'shortBreak') {
+                totalTime = 10 * 60;
+                sessionTitle.textContent = '짧은 휴식';
+                sessionDesc.textContent = '10분 동안 휴식을 취하세요.';
+            } else if (type === 'longBreak') {
+                totalTime = 20 * 60;
+                sessionTitle.textContent = '긴 휴식';
+                sessionDesc.textContent = '20분 동안 충분히 쉬세요.';
+            }
+
+            timeLeft = totalTime;
+            updateDisplay();
+        }
+
+        function updateRounds() {
+            for (let i = 1; i <= 4; i++) {
+                const round = document.getElementById(`round${i}`);
+                if (i < currentRound) {
+                    round.className = 'w-2 h-2 rounded-full bg-primary';
+                } else if (i === currentRound) {
+                    round.className = 'w-2 h-2 rounded-full bg-primary';
+                } else {
+                    round.className = 'w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700';
+                }
+            }
+        }
+
+        // 이벤트 리스너
+        playPauseBtn.addEventListener('click', toggleTimer);
+        resetBtn.addEventListener('click', reset);
+        skipBtn.addEventListener('click', nextSession);
+
+        // 키보드 단축키
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            } else if (e.code === 'KeyR') {
+                reset();
+            } else if (e.code === 'KeyN') {
+                nextSession();
+            }
+        });
+
+        // 초기화
+        updateDisplay();
+    </script>
 </body>
 
 </html>
