@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta name="description" content="TDD와 SOLID 원칙을 준수한 현대적인 뽀모도로 타이머 웹 애플리케이션" />
+    <meta name="theme-color" content="#13c8ec" />
+    <title>Pomodoro Timer - 생산성 향상 도구</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13c8ec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#101f22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        /* Custom styles for circular progress */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display min-h-screen flex flex-col items-center justify-center overflow-hidden selection:bg-primary/30">
+    <div
+        class="relative w-full max-w-md h-screen max-h-[900px] flex flex-col justify-between bg-white dark:bg-[#101f22] sm:border-x dark:sm:border-[#223032] sm:shadow-xl">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between p-6 z-10">
+            <button
+                class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5"
+                aria-label="설정">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+
+            <div class="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide uppercase">Focus
+                    Mode</span>
+            </div>
+
+            <button
+                class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5"
+                aria-label="통계">
+                <span class="material-symbols-outlined">bar_chart</span>
+            </button>
+        </header>
+
+        <!-- Main Timer Content -->
+        <main class="flex-1 flex flex-col items-center justify-center relative px-6 w-full">
+            <!-- Circular Progress Container -->
+            <div class="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center">
+                <!-- Background Circle -->
+                <svg class="w-full h-full transform" viewBox="0 0 100 100">
+                    <circle class="text-slate-200 dark:text-[#1a2c30]" cx="50" cy="50" fill="transparent" r="46"
+                        stroke="currentColor" stroke-width="4"></circle>
+                    <!-- Progress Circle -->
+                    <circle class="text-primary progress-ring__circle drop-shadow-[0_0_10px_rgba(19,200,236,0.5)]"
+                        cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-dasharray="289.026"
+                        stroke-dashoffset="50" stroke-linecap="round" stroke-width="4"></circle>
+                </svg>
+
+                <!-- Timer Text Overlay -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <h1
+                        class="text-7xl sm:text-8xl font-black text-slate-900 dark:text-white tracking-tighter tabular-nums leading-none mb-2">
+                        50:00
+                    </h1>
+                    <p class="text-slate-400 dark:text-slate-500 font-medium text-lg flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[18px]">notifications_active</span>
+                        14:50
+                    </p>
+                </div>
+            </div>
+
+            <!-- Context Info -->
+            <div class="mt-12 text-center space-y-2">
+                <h2 class="text-slate-800 dark:text-white text-xl font-bold">집중 시간</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm max-w-[200px] mx-auto leading-relaxed">
+                    50분 동안 한 가지 목표에 집중하세요.
+                </p>
+            </div>
+
+            <!-- Rounds Indicator -->
+            <div class="mt-8 flex gap-2" role="status" aria-label="현재 라운드: 1/4">
+                <div class="w-2 h-2 rounded-full bg-primary"></div>
+                <div class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                <div class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                <div class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+            </div>
+        </main>
+
+        <!-- Bottom Controls -->
+        <footer class="p-8 pb-10 w-full">
+            <div class="flex items-center justify-center gap-6">
+                <!-- Reset Button -->
+                <button
+                    class="group flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 transition-all text-slate-600 dark:text-white"
+                    aria-label="초기화">
+                    <span
+                        class="material-symbols-outlined group-hover:-rotate-90 transition-transform duration-500">replay</span>
+                </button>
+
+                <!-- Play/Pause Button -->
+                <button
+                    class="relative group flex items-center justify-center w-24 h-24 rounded-full bg-primary hover:bg-[#11b5d6] transition-all shadow-lg shadow-primary/30 active:scale-95"
+                    aria-label="시작">
+                    <span
+                        class="material-symbols-outlined text-black dark:text-[#101f22] text-5xl fill-1 ml-1 group-hover:scale-110 transition-transform">play_arrow</span>
+                    <!-- Ripple effect decorative ring -->
+                    <span
+                        class="absolute inset-0 rounded-full border border-primary/50 scale-110 animate-ping opacity-20"></span>
+                </button>
+
+                <!-- Skip/Next Button -->
+                <button
+                    class="group flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 transition-all text-slate-600 dark:text-white"
+                    aria-label="다음">
+                    <span
+                        class="material-symbols-outlined group-hover:translate-x-1 transition-transform">skip_next</span>
+                </button>
+            </div>
+        </footer>
+
+        <!-- Background Decor -->
+        <div
+            class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none">
+        </div>
+    </div>
+
+    <!-- Footer Info -->
+    <div
+        class="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-center text-xs text-slate-500 dark:text-slate-600">
+        <p>Made with ❤️ using TDD & SOLID Principles</p>
+        <p class="mt-1">
+            <a href="https://github.com/2216259-ctrl/PomodoroTimer-demo" target="_blank" rel="noopener noreferrer"
+                class="hover:text-primary transition-colors">
+                View on GitHub
+            </a>
+        </p>
+    </div>
+</body>
+
+</html>
